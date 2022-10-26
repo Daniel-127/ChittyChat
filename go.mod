@@ -1,4 +1,4 @@
-module github.com/Daniel-127/ChittyChat.git
+module github.com/Daniel-127/ChittyChat
 
 go 1.19
 
