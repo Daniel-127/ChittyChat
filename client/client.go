@@ -15,12 +15,14 @@ import (
 var user string
 var timestamp int32
 var done = make(chan bool)
+var reader *bufio.Scanner
 
 func main() {
 	timestamp = 0
-	log.Printf("Username: ")
-	user, _ = bufio.NewReader(os.Stdin).ReadString('\n')
-	user = user[0 : len(user)-1]
+	log.Print("Username:")
+	reader = bufio.NewScanner(os.Stdin)
+	reader.Scan()
+	user = reader.Text()
 	// Creat a virtual RPC Client Connection on port  9080 WithInsecure (because  of http)
 	var conn *grpc.ClientConn
 	conn, err := grpc.Dial(":9080", grpc.WithInsecure())
@@ -53,10 +55,10 @@ func joinChat(c chat.ChatClient) chat.Chat_JoinChatClient {
 	// Between the curly brackets are nothing, because the .proto file expects no input.
 	timestamp++
 	req := chat.UserRequest{User: user, Timestamp: timestamp}
-
+	log.Printf("Joining chat - %d", timestamp)
 	stream, err := c.JoinChat(context.Background(), &req)
 	if err != nil {
-		log.Fatalf("Error when calling JoinChat: %s", err)
+		log.Fatalf("Error when calling joining chat: %s", err)
 	}
 
 	return stream
@@ -64,14 +66,16 @@ func joinChat(c chat.ChatClient) chat.Chat_JoinChatClient {
 
 func handleInput(c chat.ChatClient) {
 	for {
-		log.Print(">> ")
-		input, _ := bufio.NewReader(os.Stdin).ReadString('\n')
-		input = input[0 : len(input)-1]
-		timestamp++
-		message := &chat.Message{User: user, Timestamp: timestamp, Message: input}
-		_, err := c.PostMessage(context.Background(), message)
-		if err != nil {
-			log.Fatalf("Error when posting message: %s", err)
+		reader.Scan()
+		input := reader.Text()
+		if len(input) > 0 {
+			timestamp++
+			message := &chat.Message{User: user, Timestamp: timestamp, Message: input}
+			log.Printf("%s: %s - %d", message.User, message.Message, message.Timestamp)
+			_, err := c.PostMessage(context.Background(), message)
+			if err != nil {
+				log.Fatalf("Error when posting message: %s", err)
+			}
 		}
 	}
 }
@@ -88,6 +92,6 @@ func listenOnStream(stream chat.Chat_JoinChatClient) {
 		if err != nil {
 			log.Fatalf("cannot receive %v", err)
 		}
-		log.Printf("%s: %s - %d", response.User, response.Message, response.Timestamp)
+		log.Printf("%s: %s - %d", response.User, response.Message, timestamp)
 	}
 }
