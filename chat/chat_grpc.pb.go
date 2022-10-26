@@ -2,9 +2,9 @@
 // versions:
 // - protoc-gen-go-grpc v1.2.0
 // - protoc             v3.21.8
-// source: proto/proto.proto
+// source: chat/chat.proto
 
-package proto
+package chat
 
 import (
 	context "context"
@@ -35,7 +35,7 @@ func NewGetCurrentTimeClient(cc grpc.ClientConnInterface) GetCurrentTimeClient {
 
 func (c *getCurrentTimeClient) GetTime(ctx context.Context, in *GetTimeRequest, opts ...grpc.CallOption) (*GetTimeReply, error) {
 	out := new(GetTimeReply)
-	err := c.cc.Invoke(ctx, "/proto.getCurrentTime/getTime", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/chat.getCurrentTime/getTime", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -80,7 +80,7 @@ func _GetCurrentTime_GetTime_Handler(srv interface{}, ctx context.Context, dec f
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/proto.getCurrentTime/getTime",
+		FullMethod: "/chat.getCurrentTime/getTime",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(GetCurrentTimeServer).GetTime(ctx, req.(*GetTimeRequest))
@@ -92,7 +92,7 @@ func _GetCurrentTime_GetTime_Handler(srv interface{}, ctx context.Context, dec f
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var GetCurrentTime_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "proto.getCurrentTime",
+	ServiceName: "chat.getCurrentTime",
 	HandlerType: (*GetCurrentTimeServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
@@ -101,5 +101,5 @@ var GetCurrentTime_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "proto/proto.proto",
+	Metadata: "chat/chat.proto",
 }

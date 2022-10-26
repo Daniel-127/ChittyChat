@@ -1,6 +1,6 @@
 syntax = "proto3";
-package proto;
-option go_package = "https://github.com/Daniel-127/ChittyChat.git;proto";
+package chat;
+option go_package = "https://github.com/Daniel-127/ChittyChat.git;chat";
 
 service getCurrentTime {
     rpc getTime (GetTimeRequest) returns (GetTimeReply) {}

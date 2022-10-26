@@ -7,18 +7,18 @@ import (
 	"net"
 	t "time"
 
-	"github.com/Daniel-127/ChittyChat/proto"
+	"github.com/Daniel-127/ChittyChat/chat"
 
 	"google.golang.org/grpc"
 )
 
 type Server struct {
-	proto.UnimplementedGetCurrentTimeServer
+	chat.UnimplementedGetCurrentTimeServer
 }
 
-func (s *Server) GetTime(ctx context.Context, in *proto.GetTimeRequest) (*proto.GetTimeReply, error) {
+func (s *Server) GetTime(ctx context.Context, in *chat.GetTimeRequest) (*chat.GetTimeReply, error) {
 	fmt.Printf("Received GetTime request\n")
-	return &proto.GetTimeReply{Reply: t.Now().String()}, nil
+	return &chat.GetTimeReply{Reply: t.Now().String()}, nil
 }
 
 func main() {
@@ -28,7 +28,7 @@ func main() {
 		log.Fatalf("Failed to listen on port 9080: %v", err)
 	}
 	grpcServer := grpc.NewServer()
-	proto.RegisterGetCurrentTimeServer(grpcServer, &Server{})
+	chat.RegisterGetCurrentTimeServer(grpcServer, &Server{})
 
 	if err := grpcServer.Serve(list); err != nil {
 		log.Fatalf("failed to server %v", err)

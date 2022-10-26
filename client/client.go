@@ -7,7 +7,7 @@ import (
 
 	t "time"
 
-	"github.com/Daniel-127/ChittyChat/proto"
+	"github.com/Daniel-127/ChittyChat/chat"
 
 	"google.golang.org/grpc"
 )
@@ -24,7 +24,7 @@ func main() {
 	defer conn.Close()
 
 	//  Create new Client from generated gRPC code from proto
-	c := proto.NewGetCurrentTimeClient(conn)
+	c := chat.NewGetCurrentTimeClient(conn)
 
 	for {
 		SendGetTimeRequest(c)
@@ -32,9 +32,9 @@ func main() {
 	}
 }
 
-func SendGetTimeRequest(c proto.GetCurrentTimeClient) {
+func SendGetTimeRequest(c chat.GetCurrentTimeClient) {
 	// Between the curly brackets are nothing, because the .proto file expects no input.
-	message := proto.GetTimeRequest{}
+	message := chat.GetTimeRequest{}
 
 	response, err := c.GetTime(context.Background(), &message)
 	if err != nil {
