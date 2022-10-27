@@ -23,7 +23,6 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ChatClient interface {
 	JoinChat(ctx context.Context, in *UserRequest, opts ...grpc.CallOption) (Chat_JoinChatClient, error)
-	LeaveChat(ctx context.Context, in *UserRequest, opts ...grpc.CallOption) (*Empty, error)
 	PostMessage(ctx context.Context, in *Message, opts ...grpc.CallOption) (*Empty, error)
 }
 
@@ -67,15 +66,6 @@ func (x *chatJoinChatClient) Recv() (*Message, error) {
 	return m, nil
 }
 
-func (c *chatClient) LeaveChat(ctx context.Context, in *UserRequest, opts ...grpc.CallOption) (*Empty, error) {
-	out := new(Empty)
-	err := c.cc.Invoke(ctx, "/chat.chat/leaveChat", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *chatClient) PostMessage(ctx context.Context, in *Message, opts ...grpc.CallOption) (*Empty, error) {
 	out := new(Empty)
 	err := c.cc.Invoke(ctx, "/chat.chat/postMessage", in, out, opts...)
@@ -90,7 +80,6 @@ func (c *chatClient) PostMessage(ctx context.Context, in *Message, opts ...grpc.
 // for forward compatibility
 type ChatServer interface {
 	JoinChat(*UserRequest, Chat_JoinChatServer) error
-	LeaveChat(context.Context, *UserRequest) (*Empty, error)
 	PostMessage(context.Context, *Message) (*Empty, error)
 	mustEmbedUnimplementedChatServer()
 }
@@ -101,9 +90,6 @@ type UnimplementedChatServer struct {
 
 func (UnimplementedChatServer) JoinChat(*UserRequest, Chat_JoinChatServer) error {
 	return status.Errorf(codes.Unimplemented, "method JoinChat not implemented")
-}
-func (UnimplementedChatServer) LeaveChat(context.Context, *UserRequest) (*Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method LeaveChat not implemented")
 }
 func (UnimplementedChatServer) PostMessage(context.Context, *Message) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method PostMessage not implemented")
@@ -142,24 +128,6 @@ func (x *chatJoinChatServer) Send(m *Message) error {
 	return x.ServerStream.SendMsg(m)
 }
 
-func _Chat_LeaveChat_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(UserRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(ChatServer).LeaveChat(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/chat.chat/leaveChat",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ChatServer).LeaveChat(ctx, req.(*UserRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _Chat_PostMessage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(Message)
 	if err := dec(in); err != nil {
@@ -185,10 +153,6 @@ var Chat_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "chat.chat",
 	HandlerType: (*ChatServer)(nil),
 	Methods: []grpc.MethodDesc{
-		{
-			MethodName: "leaveChat",
-			Handler:    _Chat_LeaveChat_Handler,
-		},
 		{
 			MethodName: "postMessage",
 			Handler:    _Chat_PostMessage_Handler,

@@ -4,7 +4,6 @@ option go_package = "https://github.com/Daniel-127/ChittyChat.git;chat";
 
 service chat{
     rpc joinChat (UserRequest) returns (stream Message) {}
-    rpc leaveChat (UserRequest) returns (Empty) {}
     rpc postMessage (Message) returns (Empty) {}
 }
 

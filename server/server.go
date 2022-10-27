@@ -22,16 +22,13 @@ var connections = make(map[string]*ClientConnection)
 func (s *Server) JoinChat(req *chat.UserRequest, stream chat.Chat_JoinChatServer) error {
 	updateTimestamp(req.Timestamp)
 	log.Printf("%s joined the server - %d", req.User, timestamp)
-	close := make(chan bool)
-	connections[req.User] = &ClientConnection{stream: stream, close: make(chan bool)}
+	connections[req.User] = &ClientConnection{stream: stream}
 	publishMessageToAllClients(&chat.Message{User: "Server", Message: req.User + " joined the chat"})
 	select {
-	case <-stream.Context().Done(): //Forcefully closed
+	case <-stream.Context().Done(): //User left
 		req.Timestamp = timestamp
 		disconnectFromChat(req)
-		return status.Error(codes.Canceled, "Stream was forcefully closed")
-	case <-close: //Peacefully closed
-		return status.Error(codes.OK, "Stream has been closed")
+		return status.Error(codes.Canceled, "Stream was closed")
 	}
 }
 
@@ -39,12 +36,6 @@ func (s *Server) PostMessage(ctx context.Context, msg *chat.Message) (*chat.Empt
 	updateTimestamp(msg.Timestamp)
 	log.Printf("%s: %s - %d", msg.User, msg.Message, timestamp)
 	publishMessageToAllClients(msg)
-	return &chat.Empty{}, nil
-}
-
-func (s *Server) LeaveChat(ctx context.Context, req *chat.UserRequest) (*chat.Empty, error) {
-	disconnectFromChat(req)
-	connections[req.User].close <- true
 	return &chat.Empty{}, nil
 }
 
@@ -60,9 +51,9 @@ func publishMessageToAllClients(msg *chat.Message) {
 	for user, conn := range connections {
 		if user != msg.User {
 			if firstPublish {
-				firstPublish = false
 				timestamp++
 				msg.Timestamp = timestamp
+				firstPublish = false
 				log.Printf("Publising message to all users - %d", timestamp)
 			}
 			err := conn.stream.Send(msg)
@@ -98,5 +89,4 @@ func main() {
 
 type ClientConnection struct {
 	stream chat.Chat_JoinChatServer
-	close  chan bool
 }
