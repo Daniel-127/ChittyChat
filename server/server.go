@@ -56,11 +56,15 @@ func disconnectFromChat(req *chat.UserRequest) {
 }
 
 func publishMessageToAllClients(msg *chat.Message) {
-	timestamp++
-	msg.Timestamp = timestamp
-	log.Printf("Publising message to all users - %d", timestamp)
+	firstPublish := true
 	for user, conn := range connections {
 		if user != msg.User {
+			if firstPublish {
+				firstPublish = false
+				timestamp++
+				msg.Timestamp = timestamp
+				log.Printf("Publising message to all users - %d", timestamp)
+			}
 			err := conn.stream.Send(msg)
 			if err != nil {
 				log.Fatalf("Failed to send %v", err)
